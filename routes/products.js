@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a single product by ID
+// ✅ Get a single product by ID
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -33,9 +33,9 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Add a new product
+// ✅ Add a new product
 router.post('/', async (req, res) => {
-  const { name, description, price, imageUrl, imageUrls, sizes } = req.body;
+  const { name, description, price, imageUrl, imageUrls = [], sizes = [] } = req.body;
 
   if (!name || !price || (!imageUrl && (!imageUrls || imageUrls.length === 0))) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -58,9 +58,9 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Edit a product
+// ✅ Edit a product
 router.put('/:id', async (req, res) => {
-  const { name, description, price, imageUrl, imageUrls, sizes } = req.body;
+  const { name, description, price, imageUrl, imageUrls = [], sizes = [] } = req.body;
 
   try {
     const updated = await Product.findByIdAndUpdate(
@@ -74,7 +74,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete a product
+// ✅ Delete a product
 router.delete('/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -84,14 +84,14 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Confirm order (Optional endpoint)
+// ✅ Confirm order
 router.post('/:id/order', async (req, res) => {
   try {
     const { size, email } = req.body;
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Here you can store order, send email, etc.
+    // You can also log orders in a new model if needed
     res.status(200).json({ message: `Order confirmed for ${product.name} (Size: ${size}) to ${email}` });
   } catch (err) {
     res.status(500).json({ error: 'Order failed' });
@@ -99,4 +99,5 @@ router.post('/:id/order', async (req, res) => {
 });
 
 module.exports = router;
+
 
