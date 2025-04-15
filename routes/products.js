@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
@@ -23,19 +22,55 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get a single product by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get product' });
+  }
+});
+
 // Add a new product
 router.post('/', async (req, res) => {
-  const { name, description, price, imageUrl } = req.body;
-  if (!name || !price || !imageUrl) {
+  const { name, description, price, imageUrl, imageUrls, sizes } = req.body;
+
+  if (!name || !price || (!imageUrl && (!imageUrls || imageUrls.length === 0))) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
-    const newProduct = new Product({ name, description, price, imageUrl });
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      imageUrl,
+      imageUrls,
+      sizes
+    });
+
     const savedProduct = await newProduct.save();
     res.status(201).json(savedProduct);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+// Edit a product
+router.put('/:id', async (req, res) => {
+  const { name, description, price, imageUrl, imageUrls, sizes } = req.body;
+
+  try {
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      { name, description, price, imageUrl, imageUrls, sizes },
+      { new: true }
+    );
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update product' });
   }
 });
 
@@ -49,20 +84,19 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Edit a product
-router.put('/:id', async (req, res) => {
-  const { name, description, price, imageUrl } = req.body;
-
+// Confirm order (Optional endpoint)
+router.post('/:id/order', async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      { name, description, price, imageUrl },
-      { new: true }
-    );
-    res.json(updated);
+    const { size, email } = req.body;
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    // Here you can store order, send email, etc.
+    res.status(200).json({ message: `Order confirmed for ${product.name} (Size: ${size}) to ${email}` });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Order failed' });
   }
 });
 
 module.exports = router;
+
