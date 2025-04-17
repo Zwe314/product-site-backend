@@ -3,7 +3,7 @@ const router = express.Router();
 const Product = require('../models/Product');
 const { upload } = require('../utils/cloudinary');
 
-// Upload image to Cloudinary
+// ✅ Upload image to Cloudinary
 router.post('/upload-image', upload.single('image'), (req, res) => {
   try {
     res.status(200).json({ imageUrl: req.file.path });
@@ -12,7 +12,7 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
   }
 });
 
-// Get all products
+// ✅ Get all products
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -35,46 +35,86 @@ router.get('/:id', async (req, res) => {
 
 // ✅ Add a new product
 router.post('/', async (req, res) => {
-  const { name, description, price, imageUrl, imageUrls = [], sizes = [] } = req.body;
+  const {
+    name,
+    description,
+    price,
+    imageUrls,
+    sizes,
+    colors,
+    expectedDelivery,
+    bagType,
+  } = req.body;
 
-  if (!name || !price || (!imageUrl && (!imageUrls || imageUrls.length === 0))) {
+  if (!name || !price || !imageUrls || imageUrls.length === 0) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
+    console.log('[CREATE] Request body:', req.body);
+
     const newProduct = new Product({
       name,
       description,
       price,
-      imageUrl,
       imageUrls,
-      sizes
+      sizes,
+      colors,
+      expectedDelivery,
+      bagType,
     });
 
     const savedProduct = await newProduct.save();
     res.status(201).json(savedProduct);
   } catch (err) {
+    console.error('[CREATE ERROR]', err);
     res.status(500).json({ error: 'Failed to create product' });
   }
 });
 
-// ✅ Edit a product
+// ✅ Update product
 router.put('/:id', async (req, res) => {
-  const { name, description, price, imageUrl, imageUrls = [], sizes = [] } = req.body;
+  const {
+    name,
+    description,
+    price,
+    imageUrls,
+    sizes,
+    colors,
+    expectedDelivery,
+    bagType,
+  } = req.body;
 
   try {
+    console.log('[UPDATE] Request body:', req.body);
+
     const updated = await Product.findByIdAndUpdate(
       req.params.id,
-      { name, description, price, imageUrl, imageUrls, sizes },
+      {
+        name,
+        description,
+        price,
+        imageUrls,
+        sizes,
+        colors,
+        expectedDelivery,
+        bagType,
+      },
       { new: true }
     );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Product not found to update' });
+    }
+
     res.json(updated);
   } catch (err) {
+    console.error('[UPDATE ERROR]', err);
     res.status(500).json({ error: 'Failed to update product' });
   }
 });
 
-// ✅ Delete a product
+// ✅ Delete product
 router.delete('/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -91,13 +131,20 @@ router.post('/:id/order', async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // You can also log orders in a new model if needed
-    res.status(200).json({ message: `Order confirmed for ${product.name} (Size: ${size}) to ${email}` });
+    res.status(200).json({
+      message: `Order confirmed for ${product.name} (Size: ${size}) to ${email}`,
+    });
   } catch (err) {
     res.status(500).json({ error: 'Order failed' });
   }
 });
 
 module.exports = router;
+
+
+
+
+
+
 
 
