@@ -9,15 +9,8 @@ const app = express();
 const allowedOrigins = ['https://www.cynosure-cynlife.com'];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: 'https://www.cynosure-cynlife.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'], // ✅ Important for preflight
   credentials: true
 }));
 
