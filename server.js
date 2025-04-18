@@ -6,18 +6,18 @@ require('dotenv').config();
 const app = express();
 
 // ✅ Allow only frontend domain in production
-const allowedOrigins = [
-  'https://www.cynosure-cynlife.com',
-  'https://cynosure-cynlife.com' // just in case non-www is used
-];
-
-// ✅ CORS middleware with logging
 app.use(cors({
   origin: function (origin, callback) {
-    console.log('CORS origin:', origin); // 🟡 Log incoming origin
+    console.log('CORS origin:', origin);
 
-    // Allow tools like curl, Postman, or server-to-server with no origin
+    // Allow requests with no origin (like curl or SSR)
     if (!origin) return callback(null, true);
+
+    // Allow from your frontend domain
+    const allowedOrigins = [
+      'https://www.cynosure-cynlife.com',
+      'https://cynosure-cynlife.com'
+    ];
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
